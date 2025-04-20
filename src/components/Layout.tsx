@@ -1,3 +1,4 @@
+
 import { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Home, 
   FileText, 
+  Clipboard,
   LogOut 
 } from 'lucide-react';
 
@@ -15,7 +17,7 @@ interface LayoutProps {
 }
 
 const Layout = ({ children, title, breadcrumbs = [] }: LayoutProps) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -88,6 +90,18 @@ const Layout = ({ children, title, breadcrumbs = [] }: LayoutProps) => {
                   Solicitar Demanda
                 </Link>
               </li>
+              
+              {isAdmin && (
+                <li>
+                  <Link
+                    to="/admin/triagem"
+                    className="flex items-center px-2 py-2 text-sm rounded-md text-gray-700 hover:bg-tcego-lightblue hover:text-tcego-blue"
+                  >
+                    <Clipboard className="mr-3 h-5 w-5" />
+                    Triagem
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
         </div>
