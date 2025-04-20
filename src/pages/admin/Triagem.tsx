@@ -60,13 +60,13 @@ const AdminTriagem = () => {
           <div className="w-64">
             <Select 
               value={statusFilter || ""} 
-              onValueChange={value => setStatusFilter(value || null)}
+              onValueChange={value => setStatusFilter(value === "todos" ? null : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Filtrar por Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Status</SelectItem>
+                <SelectItem value="todos">Todos os Status</SelectItem>
                 <SelectItem value="Aguardando Atendimento">Aguardando Atendimento</SelectItem>
                 <SelectItem value="Em Andamento">Em Andamento</SelectItem>
                 <SelectItem value="Concluída">Concluída</SelectItem>
@@ -77,13 +77,13 @@ const AdminTriagem = () => {
           <div className="w-64">
             <Select 
               value={tipoFilter || ""} 
-              onValueChange={value => setTipoFilter(value || null)}
+              onValueChange={value => setTipoFilter(value === "todos" ? null : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Filtrar por Tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Tipos</SelectItem>
+                <SelectItem value="todos">Todos os Tipos</SelectItem>
                 <SelectItem value="Divulgação">Divulgação</SelectItem>
                 <SelectItem value="Arte/Material Gráfico">Arte/Material Gráfico</SelectItem>
                 <SelectItem value="Cobertura">Cobertura</SelectItem>
