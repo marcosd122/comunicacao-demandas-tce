@@ -1,6 +1,6 @@
 
-import { useState, ChangeEvent } from 'react';
-import { X } from 'lucide-react';
+import { useState, ChangeEvent, useRef } from 'react';
+import { X, Upload, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FileUploadProps {
@@ -11,9 +11,10 @@ interface FileUploadProps {
 
 const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: FileUploadProps) => {
   const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       setFiles((prev) => {
         const updatedFiles = [...prev, ...newFiles];
@@ -21,6 +22,25 @@ const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: Fil
         return updatedFiles;
       });
     }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      setFiles((prev) => {
+        const updatedFiles = [...prev, ...droppedFiles];
+        onFilesChange(updatedFiles);
+        return updatedFiles;
+      });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   const removeFile = (index: number) => {
@@ -31,6 +51,12 @@ const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: Fil
     });
   };
 
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
@@ -39,22 +65,37 @@ const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: Fil
 
   return (
     <div className="space-y-4">
-      <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:bg-gray-50 transition-colors">
-        <div className="text-gray-500 mb-2">Arraste e solte alguns arquivos aqui ou clique para selecionar</div>
-        <input
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          className="hidden"
-          id="file-upload"
-        />
-        <label htmlFor="file-upload">
-          <Button variant="outline" type="button" className="mt-2">
+      <div 
+        className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onClick={handleButtonClick}
+      >
+        <div className="flex flex-col items-center">
+          <Upload className="h-10 w-10 text-gray-400 mb-2" />
+          <div className="text-gray-500 mb-2">Arraste e solte alguns arquivos aqui ou clique para selecionar</div>
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+            id="file-upload"
+            ref={fileInputRef}
+          />
+          <Button 
+            variant="outline" 
+            type="button" 
+            className="mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleButtonClick();
+            }}
+          >
             Selecionar Arquivos
           </Button>
-        </label>
-        <div className="text-xs text-gray-500 mt-2">
-          Tipos de arquivos permitidos: imagem, áudio, zip, pdf, doc, xls, txt e zip
+          <div className="text-xs text-gray-500 mt-2">
+            Tipos de arquivos permitidos: imagem, áudio, zip, pdf, doc, xls, txt e zip
+          </div>
         </div>
       </div>
 
@@ -67,7 +108,7 @@ const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: Fil
               <div key={index} className="flex items-center justify-between p-2 border rounded bg-gray-50">
                 <div className="flex items-center">
                   <div className="bg-blue-100 p-2 rounded">
-                    <FileIcon />
+                    <FileText className="h-4 w-4 text-blue-500" />
                   </div>
                   <div className="ml-2">
                     <div className="text-sm font-medium">{file.name}</div>
@@ -99,7 +140,7 @@ const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: Fil
               <div key={index} className="flex items-center justify-between p-2 border rounded bg-gray-50">
                 <div className="flex items-center">
                   <div className="bg-blue-100 p-2 rounded">
-                    <FileIcon />
+                    <FileText className="h-4 w-4 text-blue-500" />
                   </div>
                   <div className="ml-2">
                     <div className="text-sm font-medium">{file.name}</div>
@@ -122,26 +163,5 @@ const FileUpload = ({ onFilesChange, existingFiles = [], onRemoveExisting }: Fil
     </div>
   );
 };
-
-const FileIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="text-blue-500"
-  >
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-    <polyline points="14 2 14 8 20 8"></polyline>
-    <line x1="16" y1="13" x2="8" y2="13"></line>
-    <line x1="16" y1="17" x2="8" y2="17"></line>
-    <polyline points="10 9 9 9 8 9"></polyline>
-  </svg>
-);
 
 export default FileUpload;
