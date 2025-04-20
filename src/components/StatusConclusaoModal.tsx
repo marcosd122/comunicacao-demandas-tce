@@ -19,33 +19,46 @@ const StatusConclusaoModal = ({ open, onClose, onSubmit, status }: StatusConclus
   const [error, setError] = useState<string | null>(null);
 
   const handleFilesChange = (files: File[]) => {
-    const invalid = files.find(f => f.size > 100 * 1024 * 1024);
-    if (invalid) {
-      setError("Arquivos devem ter no máximo 100MB.");
-    } else {
-      setError(null);
-      setAnexos(files);
+    try {
+      const invalid = files.find(f => f.size > 100 * 1024 * 1024);
+      if (invalid) {
+        setError("Arquivos devem ter no máximo 100MB.");
+      } else {
+        setError(null);
+        setAnexos(files);
+      }
+    } catch (err) {
+      console.error("Erro ao processar arquivos:", err);
+      setError("Erro ao processar arquivos.");
     }
   };
 
   const handleConfirm = () => {
-    if (status === "Rejeitada" && !motivo.trim()) {
-      setError("Informe o motivo da rejeição.");
-      return;
+    try {
+      if (status === "Rejeitada" && !motivo.trim()) {
+        setError("Informe o motivo da rejeição.");
+        return;
+      }
+      
+      onSubmit({
+        motivoRejeicao: status === "Rejeitada" ? motivo : undefined,
+        linkConclusao: status === "Concluída" ? link : undefined,
+        anexosConclusao: anexos.length > 0 ? anexos : undefined,
+      });
+      
+      // Reset form state
+      setMotivo("");
+      setLink("");
+      setAnexos([]);
+      setError(null);
+    } catch (err) {
+      console.error("Erro ao confirmar:", err);
+      setError("Erro ao processar a solicitação.");
     }
-    onSubmit({
-      motivoRejeicao: status === "Rejeitada" ? motivo : undefined,
-      linkConclusao: status === "Concluída" ? link : undefined,
-      anexosConclusao: anexos,
-    });
-    setMotivo("");
-    setLink("");
-    setAnexos([]);
-    setError(null);
   };
 
   return (
-    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogTitle>
           {status === "Concluída" ? "Finalizar como Concluída" : "Finalizar como Rejeitada"}
@@ -54,13 +67,13 @@ const StatusConclusaoModal = ({ open, onClose, onSubmit, status }: StatusConclus
           {status === "Rejeitada" && (
             <>
               <label className="block text-sm">Motivo da Rejeição *</label>
-              <Input value={motivo} onChange={e => setMotivo(e.target.value)} required />
+              <Input value={motivo} onChange={(e) => setMotivo(e.target.value)} required />
             </>
           )}
           {status === "Concluída" && (
             <>
               <label className="block text-sm">Link de Conclusão (opcional)</label>
-              <Input value={link} onChange={e => setLink(e.target.value)} />
+              <Input value={link} onChange={(e) => setLink(e.target.value)} />
             </>
           )}
           <div>
