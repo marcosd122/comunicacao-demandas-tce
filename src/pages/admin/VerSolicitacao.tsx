@@ -15,12 +15,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import StatusConclusaoModal from "@/components/StatusConclusaoModal";
 
 const AdminVerSolicitacao = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [solicitacao, setSolicitacao] = useState<Solicitacao | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [finalStatus, setFinalStatus] = useState<"Concluída" | "Rejeitada" | null>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['solicitacao', id],
@@ -34,15 +37,18 @@ const AdminVerSolicitacao = () => {
   }, [data]);
 
   const handleStatusChange = async (novoStatus: string) => {
+    if (novoStatus === "Concluída" || novoStatus === "Rejeitada") {
+      setFinalStatus(novoStatus as "Concluída" | "Rejeitada");
+      setModalOpen(true);
+      return;
+    }
     try {
       if (!id) return;
-
       const additionalData: { motivoRejeicao?: string } = {};
       
-      // Se o status for Rejeitada, solicitar motivo
       if (novoStatus === 'Rejeitada') {
         const motivo = window.prompt('Por favor, informe o motivo da rejeição:');
-        if (!motivo) return; // Cancela se não informar motivo
+        if (!motivo) return;
         additionalData.motivoRejeicao = motivo;
       }
 
@@ -53,13 +59,38 @@ const AdminVerSolicitacao = () => {
         description: "O status da solicitação foi atualizado com sucesso.",
       });
       
-      refetch(); // Recarrega os dados
+      refetch();
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro ao atualizar status",
         description: "Não foi possível atualizar o status da solicitação.",
       });
+    }
+  };
+
+  const handleModalSubmit = async (extras: { motivoRejeicao?: string; linkConclusao?: string; anexosConclusao?: File[] }) => {
+    if (!id || !finalStatus) return;
+    try {
+      await api.atualizarStatusSolicitacao(id, finalStatus, {
+        ...extras,
+        anexosConclusao: extras.anexosConclusao,
+      });
+      toast({
+        title: "Status atualizado",
+        description: "O status da solicitação foi atualizado com sucesso.",
+      });
+      setModalOpen(false);
+      setFinalStatus(null);
+      refetch();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar status",
+        description: "Não foi possível atualizar o status da solicitação.",
+      });
+      setModalOpen(false);
+      setFinalStatus(null);
     }
   };
 
@@ -139,6 +170,16 @@ const AdminVerSolicitacao = () => {
           </Select>
         </div>
       </div>
+
+      <StatusConclusaoModal
+        open={modalOpen}
+        status={finalStatus as "Concluída" | "Rejeitada"}
+        onClose={() => {
+          setModalOpen(false);
+          setFinalStatus(null);
+        }}
+        onSubmit={handleModalSubmit}
+      />
 
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-start mb-6">
