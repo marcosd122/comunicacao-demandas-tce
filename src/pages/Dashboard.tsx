@@ -34,27 +34,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {isAdmin && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Triagem</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500 mb-4">
-                Gerencie aqui todas as solicitações de comunicação enviadas.
-              </p>
-              <div className="flex justify-end">
-                <Link 
-                  to="/admin/triagem" 
-                  className="bg-tcego-blue text-white px-4 py-2 rounded-md text-sm hover:bg-tcego-blue/90 transition-colors"
-                >
-                  Acessar
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </Layout>
   );
