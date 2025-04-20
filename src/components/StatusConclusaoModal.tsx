@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogActions } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import FileUpload from "@/components/FileUpload";
 import { Input } from "@/components/ui/input";
@@ -69,10 +69,10 @@ const StatusConclusaoModal = ({ open, onClose, onSubmit, status }: StatusConclus
           </div>
           {error && <span className="text-red-600 text-sm">{error}</span>}
         </div>
-        <DialogActions>
+        <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={handleConfirm}>Salvar</Button>
-        </DialogActions>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
