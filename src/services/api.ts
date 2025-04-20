@@ -1,7 +1,12 @@
 
 import { Solicitacao, SolicitacaoStatus, SolicitacaoTipo, Avaliacao } from '@/types';
 
-// Dados simulados para demonstração
+// URL base da API - altere para o endereço do seu backend quando estiver pronto
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://seu-backend-real.com/api' 
+  : 'http://localhost:3000/api';
+
+// Dados simulados para demonstração (usado apenas enquanto o backend não está pronto)
 let solicitacoes: Solicitacao[] = [
   {
     id: '1',
@@ -104,51 +109,101 @@ let solicitacoes: Solicitacao[] = [
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Funções de API simuladas
+// Configuração para as requisições fetch
+const fetchConfig = {
+  headers: {
+    'Content-Type': 'application/json',
+    // Adicione headers de autenticação quando necessário
+    // 'Authorization': `Bearer ${token}`
+  },
+};
+
+// Função helper para requisições HTTP
+const fetchApi = async (endpoint: string, options = {}) => {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...fetchConfig,
+      ...options,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Erro na requisição: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Erro ao acessar ${endpoint}:`, error);
+    throw error;
+  }
+};
+
+// API com implementação dual (mockada ou real)
 export const api = {
   // Solicitações
   getSolicitacoes: async (): Promise<Solicitacao[]> => {
-    await delay(500);
-    return [...solicitacoes];
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(500);
+      return [...solicitacoes];
+    }
+    
+    // Versão real
+    return fetchApi('/solicitacoes');
   },
 
   getSolicitacao: async (id: string): Promise<Solicitacao | null> => {
-    await delay(300);
-    const solicitacao = solicitacoes.find(s => s.id === id);
-    return solicitacao ? { ...solicitacao } : null;
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(300);
+      const solicitacao = solicitacoes.find(s => s.id === id);
+      return solicitacao ? { ...solicitacao } : null;
+    }
+    
+    // Versão real
+    return fetchApi(`/solicitacoes/${id}`);
   },
 
   criarSolicitacao: async (data: Partial<Solicitacao>): Promise<Solicitacao> => {
-    await delay(800);
-    const novaSolicitacao: Solicitacao = {
-      id: Math.random().toString(36).substring(2, 11),
-      tipo: data.tipo as SolicitacaoTipo,
-      status: 'Aguardando Atendimento',
-      dataSolicitacao: new Date().toISOString(),
-      solicitante: {
-        id: '123',
-        nome: 'USUÁRIO 464578',
-        email: data.email || 'usuario@tce.go.gov.br'
-      },
-      ramal: data.ramal || '',
-      email: data.email,
-      dataPublicacao: data.dataPublicacao,
-      dataExpectativa: data.dataExpectativa,
-      dataEvento: data.dataEvento,
-      mensagem: data.mensagem,
-      tipoMaterial: data.tipoMaterial,
-      publicoAlvo: data.publicoAlvo,
-      detalhamento: data.detalhamento,
-      descricaoEvento: data.descricaoEvento,
-      localEvento: data.localEvento,
-      numeroParticipantes: data.numeroParticipantes,
-      membrosPresentes: data.membrosPresentes,
-      aprovadoGestor: data.aprovadoGestor || false,
-      anexos: data.anexos || []
-    };
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(800);
+      const novaSolicitacao: Solicitacao = {
+        id: Math.random().toString(36).substring(2, 11),
+        tipo: data.tipo as SolicitacaoTipo,
+        status: 'Aguardando Atendimento',
+        dataSolicitacao: new Date().toISOString(),
+        solicitante: {
+          id: '123',
+          nome: 'USUÁRIO 464578',
+          email: data.email || 'usuario@tce.go.gov.br'
+        },
+        ramal: data.ramal || '',
+        email: data.email,
+        dataPublicacao: data.dataPublicacao,
+        dataExpectativa: data.dataExpectativa,
+        dataEvento: data.dataEvento,
+        mensagem: data.mensagem,
+        tipoMaterial: data.tipoMaterial,
+        publicoAlvo: data.publicoAlvo,
+        detalhamento: data.detalhamento,
+        descricaoEvento: data.descricaoEvento,
+        localEvento: data.localEvento,
+        numeroParticipantes: data.numeroParticipantes,
+        membrosPresentes: data.membrosPresentes,
+        aprovadoGestor: data.aprovadoGestor || false,
+        anexos: data.anexos || []
+      };
 
-    solicitacoes.push(novaSolicitacao);
-    return novaSolicitacao;
+      solicitacoes.push(novaSolicitacao);
+      return novaSolicitacao;
+    }
+    
+    // Versão real
+    return fetchApi('/solicitacoes', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   },
 
   atualizarStatusSolicitacao: async (id: string, status: SolicitacaoStatus, dados?: {
@@ -156,57 +211,89 @@ export const api = {
     linkConclusao?: string;
     anexosConclusao?: any[];
   }): Promise<Solicitacao | null> => {
-    await delay(500);
-    const index = solicitacoes.findIndex(s => s.id === id);
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(500);
+      const index = solicitacoes.findIndex(s => s.id === id);
+      
+      if (index === -1) return null;
+      
+      solicitacoes[index] = {
+        ...solicitacoes[index],
+        status,
+        ...dados
+      };
+      
+      return solicitacoes[index];
+    }
     
-    if (index === -1) return null;
-    
-    solicitacoes[index] = {
-      ...solicitacoes[index],
-      status,
-      ...dados
-    };
-    
-    return solicitacoes[index];
+    // Versão real
+    return fetchApi(`/solicitacoes/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, ...dados })
+    });
   },
 
   excluirSolicitacao: async (id: string): Promise<boolean> => {
-    await delay(500);
-    const index = solicitacoes.findIndex(s => s.id === id);
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(500);
+      const index = solicitacoes.findIndex(s => s.id === id);
+      
+      if (index === -1) return false;
+      
+      solicitacoes.splice(index, 1);
+      return true;
+    }
     
-    if (index === -1) return false;
-    
-    solicitacoes.splice(index, 1);
-    return true;
+    // Versão real
+    return fetchApi(`/solicitacoes/${id}`, {
+      method: 'DELETE'
+    }).then(() => true);
   },
 
   // Avaliações
   avaliarSolicitacao: async (solicitacaoId: string, avaliacao: Omit<Avaliacao, 'id' | 'solicitacaoId' | 'createdAt'>): Promise<Avaliacao> => {
-    await delay(500);
-    const index = solicitacoes.findIndex(s => s.id === solicitacaoId);
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(500);
+      const index = solicitacoes.findIndex(s => s.id === solicitacaoId);
+      
+      if (index === -1) throw new Error('Solicitação não encontrada');
+      
+      const novaAvaliacao: Avaliacao = {
+        id: Math.random().toString(36).substring(2, 11),
+        solicitacaoId,
+        entregaNoTempoEsperado: avaliacao.entregaNoTempoEsperado,
+        atendeuExpectativas: avaliacao.atendeuExpectativas,
+        grauSatisfacao: avaliacao.grauSatisfacao,
+        caracteristicas: avaliacao.caracteristicas,
+        outrasCaracteristicas: avaliacao.outrasCaracteristicas,
+        createdAt: new Date().toISOString()
+      };
+      
+      solicitacoes[index].avaliacao = novaAvaliacao;
+      
+      return novaAvaliacao;
+    }
     
-    if (index === -1) throw new Error('Solicitação não encontrada');
-    
-    const novaAvaliacao: Avaliacao = {
-      id: Math.random().toString(36).substring(2, 11),
-      solicitacaoId,
-      entregaNoTempoEsperado: avaliacao.entregaNoTempoEsperado,
-      atendeuExpectativas: avaliacao.atendeuExpectativas,
-      grauSatisfacao: avaliacao.grauSatisfacao,
-      caracteristicas: avaliacao.caracteristicas,
-      outrasCaracteristicas: avaliacao.outrasCaracteristicas,
-      createdAt: new Date().toISOString()
-    };
-    
-    solicitacoes[index].avaliacao = novaAvaliacao;
-    
-    return novaAvaliacao;
+    // Versão real
+    return fetchApi(`/solicitacoes/${solicitacaoId}/avaliacao`, {
+      method: 'POST',
+      body: JSON.stringify(avaliacao)
+    });
   },
 
   getAvaliacoes: async (): Promise<Avaliacao[]> => {
-    await delay(500);
-    return solicitacoes
-      .filter(s => s.avaliacao)
-      .map(s => s.avaliacao!) as Avaliacao[];
+    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
+      // Versão mockada
+      await delay(500);
+      return solicitacoes
+        .filter(s => s.avaliacao)
+        .map(s => s.avaliacao!) as Avaliacao[];
+    }
+    
+    // Versão real
+    return fetchApi('/avaliacoes');
   }
 };
