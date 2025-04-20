@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -15,15 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from '@/hooks/use-toast';
 
 const AdminTriagem = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [tipoFilter, setTipoFilter] = useState<string | null>(null);
 
-  const { data: solicitacoes, isLoading, refetch } = useQuery({
+  const { data: solicitacoes, isLoading } = useQuery({
     queryKey: ['solicitacoes'],
     queryFn: api.getSolicitacoes
   });
@@ -38,24 +35,6 @@ const AdminTriagem = () => {
         return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-blue-100 text-blue-800';
-    }
-  };
-
-  const handleStatusChange = async (solicitacaoId: string, novoStatus: string) => {
-    try {
-      // Aqui você implementaria a chamada à API para atualizar o status
-      // await api.atualizarStatusSolicitacao(solicitacaoId, novoStatus);
-      toast({
-        title: "Status atualizado",
-        description: "O status da solicitação foi atualizado com sucesso.",
-      });
-      refetch(); // Recarrega os dados
-    } catch (error) {
-      toast({
-        title: "Erro ao atualizar status",
-        description: "Não foi possível atualizar o status da solicitação.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -149,20 +128,9 @@ const AdminTriagem = () => {
                       {`Solicitação de ${item.tipo}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Select
-                        value={item.status}
-                        onValueChange={(value) => handleStatusChange(item.id, value)}
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Aguardando Atendimento">Aguardando Atendimento</SelectItem>
-                          <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-                          <SelectItem value="Concluída">Concluída</SelectItem>
-                          <SelectItem value="Rejeitada">Rejeitada</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Badge className={getStatusColor(item.status)} variant="outline">
+                        {item.status}
+                      </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <Button
