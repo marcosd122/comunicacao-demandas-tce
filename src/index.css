@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 223 64% 32%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -30,7 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 222 64% 32%;
 
     --radius: 0.5rem;
 
@@ -96,6 +97,35 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-50 text-foreground;
   }
+}
+
+/* Classes personalizadas para o sistema */
+.bg-tcego-blue {
+  background-color: #26567d;
+}
+
+.hover\:bg-tcego-blue\/90:hover {
+  background-color: rgba(38, 86, 125, 0.9);
+}
+
+.text-tcego-blue {
+  color: #26567d;
+}
+
+.hover\:text-tcego-blue\/80:hover {
+  color: rgba(38, 86, 125, 0.8);
+}
+
+.bg-tcego-lightblue {
+  background-color: #e6eef4;
+}
+
+.bg-tcego-yellow {
+  background-color: #f9b000;
+}
+
+.bg-tcego-gray {
+  background-color: #f5f5f5;
 }
